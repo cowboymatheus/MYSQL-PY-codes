@@ -13,6 +13,7 @@ try:
     print("(4) Cadastrar cliente")
     print("(5) Cadastrar produto")
     print("(6) Cadastrar pedido")
+    print("(7) Mudar valores de um produto")
     option = int(input(f"Digite o número da sua opção: "))
 
     #opção 1
@@ -130,7 +131,34 @@ try:
         print("-----------------------------------------------")
         print("Cadstro de produto executado com sucesso!")
         print("-----------------------------------------------")
+    
+    elif option == 7:
+        print("-----------------------------------------------")
+        id_produto_p_mudar_valores=int(input("Digite o ID do produto que deseja mudar o custo e valor de venda: "))
+        novo_valor_custo=float(input("Digite o novo valor de custo do produto: "))
+        novo_valor_venda=float(input("Digite o novo valor de venda do produto: "))
 
+        cursor=conection.cursor()
+
+        cursor.execute("SELECT id_produto FROM produtos WHERE id_produto = %s", (id_produto_p_mudar_valores))
+        produto = cursor.fetchone()
+
+        if not produto:
+            print("Erro: Produto não encontrado.")
+            conection.close()
+            exit()
+
+        sql_custo="UPDATE produtos SET valor_custo = %s WHERE id_produto = %s"
+        sql_venda="UPDATE produtos SET valor_venda = %s WHERE id_produto = %s"
+        cursor.execute (sql_custo, (novo_valor_custo, id_produto_p_mudar_valores))
+        conection.commit()
+        cursor.execute (sql_venda, (novo_valor_venda, id_produto_p_mudar_valores))
+        conection.commit()
+        cursor.close()
+        conection.close()
+        print("-----------------------------------------------")
+        print(f"Mudança de valores do produto '{id_produto_p_mudar_valores}' executado com sucesso!")
+        print("-----------------------------------------------")
     
 except Exception as e:
     print(f"Erro ao executar comando: {e}")
