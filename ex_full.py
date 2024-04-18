@@ -14,6 +14,7 @@ try:
     print("(5) Cadastrar produto")
     print("(6) Cadastrar pedido")
     print("(7) Mudar valores de um produto")
+    print("(8) Deletar linha de uma tabela")
     option = int(input(f"Digite o número da sua opção: "))
 
     #opção 1
@@ -132,15 +133,16 @@ try:
         print("Cadstro de produto executado com sucesso!")
         print("-----------------------------------------------")
     
+    #opção 7
     elif option == 7:
         print("-----------------------------------------------")
         id_produto_p_mudar_valores=int(input("Digite o ID do produto que deseja mudar o custo e valor de venda: "))
-        novo_valor_custo=float(input("Digite o novo valor de custo do produto: "))
-        novo_valor_venda=float(input("Digite o novo valor de venda do produto: "))
+        novo_valor_custo=input("Digite o novo valor de custo do produto (ou pressione Enter para manter o valor atual): ")
+        novo_valor_venda=input("Digite o novo valor de venda do produto (ou pressione Enter para manter o valor atual): ")
 
         cursor=conection.cursor()
 
-        cursor.execute("SELECT id_produto FROM produtos WHERE id_produto = %s", (id_produto_p_mudar_valores))
+        cursor.execute("SELECT id_produto, valor_custo, valor_venda FROM produtos WHERE id_produto = %s", (id_produto_p_mudar_valores,))
         produto = cursor.fetchone()
 
         if not produto:
@@ -148,17 +150,54 @@ try:
             conection.close()
             exit()
 
-        sql_custo="UPDATE produtos SET valor_custo = %s WHERE id_produto = %s"
-        sql_venda="UPDATE produtos SET valor_venda = %s WHERE id_produto = %s"
-        cursor.execute (sql_custo, (novo_valor_custo, id_produto_p_mudar_valores))
-        conection.commit()
-        cursor.execute (sql_venda, (novo_valor_venda, id_produto_p_mudar_valores))
-        conection.commit()
+        if novo_valor_custo != "":
+            novo_valor_custo = float(novo_valor_custo)
+            sql_custo="UPDATE produtos SET valor_custo = %s WHERE id_produto = %s"
+            cursor.execute (sql_custo, (novo_valor_custo, id_produto_p_mudar_valores))
+            conection.commit()
+
+        if novo_valor_venda != "":
+            novo_valor_venda = float(novo_valor_venda)
+            sql_venda="UPDATE produtos SET valor_venda = %s WHERE id_produto = %s"
+            cursor.execute (sql_venda, (novo_valor_venda, id_produto_p_mudar_valores))
+            conection.commit()
+
         cursor.close()
         conection.close()
         print("-----------------------------------------------")
         print(f"Mudança de valores do produto '{id_produto_p_mudar_valores}' executado com sucesso!")
         print("-----------------------------------------------")
+    
+    #opção 8
+    elif option == 8:
+        print("-----------------------------------------------")
+        print("(1) Deletar linha da tabela 'Clientes'")
+    print("(2) Deletar linha da tabela 'Produtos'")
+    print("(3) Deletar linha da tabela 'Pedidos'")
+    option = int(input(f"Digite o número da sua opção: "))
+    id_linha_a_ser_del = int(input(f"Digite o ID da linha que deseja deletar: "))
+    cursor=conection.cursor()
+
+    if option == 1:
+        print("------------------------------")
+        cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_linha_a_ser_del,))
+        conection.commit()
+        print("Linha da tabela Clientes deletada com sucesso!")
+        print("------------------------------")
+
+    if option == 2:
+        print("------------------------------")
+        cursor.execute("DELETE FROM produtos WHERE id_produto = %s", (id_linha_a_ser_del,))
+        conection.commit()
+        print("Linha da tabela Produtos deletada com sucesso!")
+        print("------------------------------")
+
+    if option == 3:
+        print("------------------------------")
+        cursor.execute("DELETE FROM pedidos WHERE id_pedido = %s", (id_linha_a_ser_del,))
+        conection.commit()
+        print("Linha da tabela Produtos deletada com sucesso!")
+        print("------------------------------")
     
 except Exception as e:
     print(f"Erro ao executar comando: {e}")
