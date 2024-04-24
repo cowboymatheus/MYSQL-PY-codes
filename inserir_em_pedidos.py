@@ -40,6 +40,11 @@ try:
     custo_pedido = product[1] * qntd
     valor_pedido = product[2] * qntd
     cursor.execute(sql, (id_cliente, id_produto, qntd, custo_pedido, valor_pedido))
+    cursor.close()
+
+    # Update stock quantity in produtos based on quantity sold
+    cursor = conection.cursor()
+    cursor.execute("UPDATE produtos SET qntd_estoque = qntd_estoque - %s WHERE id_produto = %s", (qntd,id_produto,))
     conection.commit()
     cursor.close()
     conection.close()

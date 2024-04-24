@@ -126,11 +126,16 @@ try:
         custo_pedido = product[1] * qntd
         valor_pedido = product[2] * qntd
         cursor.execute(sql, (id_cliente, id_produto, qntd, custo_pedido, valor_pedido))
+        cursor.close()
+
+        # Update stock quantity in produtos based on quantity sold
+        cursor = conection.cursor()
+        cursor.execute("UPDATE produtos SET qntd_estoque = qntd_estoque - %s WHERE id_produto = %s", (qntd,id_produto,))
         conection.commit()
         cursor.close()
         conection.close()
         print("-----------------------------------------------")
-        print("Cadstro de produto executado com sucesso!")
+        print("Cadstro de pedido executado com sucesso!")
         print("-----------------------------------------------")
     
     #opção 7
@@ -172,32 +177,32 @@ try:
     elif option == 8:
         print("-----------------------------------------------")
         print("(1) Deletar linha da tabela 'Clientes'")
-    print("(2) Deletar linha da tabela 'Produtos'")
-    print("(3) Deletar linha da tabela 'Pedidos'")
-    option = int(input(f"Digite o número da sua opção: "))
-    id_linha_a_ser_del = int(input(f"Digite o ID da linha que deseja deletar: "))
-    cursor=conection.cursor()
+        print("(2) Deletar linha da tabela 'Produtos'")
+        print("(3) Deletar linha da tabela 'Pedidos'")
+        option = int(input(f"Digite o número da sua opção: "))
+        id_linha_a_ser_del = int(input(f"Digite o ID da linha que deseja deletar: "))
+        cursor=conection.cursor()
 
-    if option == 1:
-        print("------------------------------")
-        cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_linha_a_ser_del,))
-        conection.commit()
-        print("Linha da tabela Clientes deletada com sucesso!")
-        print("------------------------------")
+        if option == 1:
+            print("------------------------------")
+            cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_linha_a_ser_del,))
+            conection.commit()
+            print("Linha da tabela Clientes deletada com sucesso!")
+            print("------------------------------")
 
-    if option == 2:
-        print("------------------------------")
-        cursor.execute("DELETE FROM produtos WHERE id_produto = %s", (id_linha_a_ser_del,))
-        conection.commit()
-        print("Linha da tabela Produtos deletada com sucesso!")
-        print("------------------------------")
+        if option == 2:
+            print("------------------------------")
+            cursor.execute("DELETE FROM produtos WHERE id_produto = %s", (id_linha_a_ser_del,))
+            conection.commit()
+            print("Linha da tabela Produtos deletada com sucesso!")
+            print("------------------------------")
 
-    if option == 3:
-        print("------------------------------")
-        cursor.execute("DELETE FROM pedidos WHERE id_pedido = %s", (id_linha_a_ser_del,))
-        conection.commit()
-        print("Linha da tabela Produtos deletada com sucesso!")
-        print("------------------------------")
+        if option == 3:
+            print("------------------------------")
+            cursor.execute("DELETE FROM pedidos WHERE id_pedido = %s", (id_linha_a_ser_del,))
+            conection.commit()
+            print("Linha da tabela Produtos deletada com sucesso!")
+            print("------------------------------")
     
 except Exception as e:
     print(f"Erro ao executar comando: {e}")
