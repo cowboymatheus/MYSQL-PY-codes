@@ -1,4 +1,5 @@
 import mysql.connector
+import datetime
 try:
     conection = mysql.connector.connect(
         host="127.0.0.1",
@@ -13,6 +14,8 @@ try:
     print("(4) Cadastrar Livro")
     print("(5) Cadastrar Leitor")
     print("(6) Cadastrar Empréstimo")
+    print("(7) Modificar Email do Leitor")
+    print("(8) Deletar Linha de uma Tabela")
     option = int(input(f"Digite o número da sua opção: "))
 
     #opção 1 Listar Livros
@@ -93,117 +96,105 @@ try:
         print("Cadstro de leitor executado com sucesso!")
         print("-----------------------------------------------")
 
-    #opção 6 
+    #opção 6 Cadastrar Empréstimo
     elif option == 6:
         print("-----------------------------------------------")
-        id_cliente = int(input("Digite o ID do cliente comprador: "))
-        id_produto = int(input("Digite o ID do produto a ser comprado: "))
-        qntd = int(input("Digite a quantidade de unidades do produto a serem compradas: "))
+        IdLivroEmprestado = int(input("Digite o ID do livro a ser emprestado: "))
+        IdLeitorEmprestador = int(input("Digite o ID do leitor a alugar um livro: "))
 
-        # Check if client ID exists
+        # Checkar se ID do livro existe
         cursor = conection.cursor()
-        cursor.execute("SELECT id_cliente FROM clientes WHERE id_cliente = %s", (id_cliente,))
-        client = cursor.fetchone()
+        cursor.execute("SELECT id_livro FROM livros_tb WHERE id_livro = %s", (IdLivroEmprestado,))
+        livro = cursor.fetchone()
         cursor.close()
 
-        if not client:
-            print("Erro: Cliente não encontrado.")
+        if not livro:
+            print("Erro: Livro não encontrado.")
             conection.close()
             exit()
 
-        # Check if product ID exists
+        # Checkar se ID do leitor existe
         cursor = conection.cursor()
-        cursor.execute("SELECT id_produto, valor_custo, valor_venda FROM produtos WHERE id_produto = %s", (id_produto,))
-        product = cursor.fetchone()
+        cursor.execute("SELECT id_leitor FROM leitores_tb WHERE id_leitor = %s", (IdLeitorEmprestador,))
+        leitor = cursor.fetchone()
         cursor.close()
 
-        if not product:
-            print("Erro: Produto não encontrado.")
+        if not leitor:
+            print("Erro: Leitor não encontrado.")
             conection.close()
             exit()
 
-        # Insert order into pedidos table
-        sql = "INSERT INTO pedidos (id_cliente, id_produto, qntd, custo_pedido, valor_pedido) VALUES (%s,%s,%s,%s,%s)"
-        cursor = conection.cursor()
-        custo_pedido = product[1] * qntd
-        valor_pedido = product[2] * qntd
-        cursor.execute(sql, (id_cliente, id_produto, qntd, custo_pedido, valor_pedido))
-        cursor.close()
+        # Calcular data de devolução
+        timestampAtual = datetime.datetime.now()
+        timestampDevolucao = timestampAtual + datetime.timedelta(days=7)
 
-        # Update stock quantity in produtos based on quantity sold
+        # Inserir Empréstimo na tabela Empréstimos
+        sql = "INSERT INTO emprestimos_tb (id_livro_emprestimo, id_leitor_emprestimo, data_devolucao) VALUES (%s,%s,%s)"
         cursor = conection.cursor()
-        cursor.execute("UPDATE produtos SET qntd_estoque = qntd_estoque - %s WHERE id_produto = %s", (qntd,id_produto,))
+        cursor.execute(sql, (IdLivroEmprestado, IdLeitorEmprestador, timestampDevolucao))
         conection.commit()
         cursor.close()
         conection.close()
         print("-----------------------------------------------")
-        print("Cadstro de pedido executado com sucesso!")
+        print("Cadstro de emprestimo executado com sucesso!")
         print("-----------------------------------------------")
     
-    #opção 7
+    #opção 7 Modifucar Email do Leitor
     elif option == 7:
         print("-----------------------------------------------")
-        id_produto_p_mudar_valores=int(input("Digite o ID do produto que deseja mudar o custo e valor de venda: "))
-        novo_valor_custo=input("Digite o novo valor de custo do produto (ou pressione Enter para manter o valor atual): ")
-        novo_valor_venda=input("Digite o novo valor de venda do produto (ou pressione Enter para manter o valor atual): ")
+        IdLeitorPMudarEmail = int(input("Digite o ID do Leitor que deseja mudar o email: "))
+        NovoEmail = input("Digite o novo email do leitor: ")
 
         cursor=conection.cursor()
 
-        cursor.execute("SELECT id_produto, valor_custo, valor_venda FROM produtos WHERE id_produto = %s", (id_produto_p_mudar_valores,))
-        produto = cursor.fetchone()
+        cursor.execute("SELECT email_leitor FROM leitores_tb WHERE id_leitor = %s", (IdLeitorPMudarEmail,))
+        leitor = cursor.fetchone()
 
-        if not produto:
+        if not leitor:
             print("Erro: Produto não encontrado.")
             conection.close()
             exit()
 
-        if novo_valor_custo != "":
-            novo_valor_custo = float(novo_valor_custo)
-            sql_custo="UPDATE produtos SET valor_custo = %s WHERE id_produto = %s"
-            cursor.execute (sql_custo, (novo_valor_custo, id_produto_p_mudar_valores))
-            conection.commit()
-
-        if novo_valor_venda != "":
-            novo_valor_venda = float(novo_valor_venda)
-            sql_venda="UPDATE produtos SET valor_venda = %s WHERE id_produto = %s"
-            cursor.execute (sql_venda, (novo_valor_venda, id_produto_p_mudar_valores))
+        if NovoEmail != "":
+            sql = "UPDATE leitores_tb SET email_leitor = %s WHERE id_leitor = %s"
+            cursor.execute (sql, (NovoEmail, IdLeitorPMudarEmail))
             conection.commit()
 
         cursor.close()
         conection.close()
         print("-----------------------------------------------")
-        print(f"Mudança de valores do produto '{id_produto_p_mudar_valores}' executado com sucesso!")
+        print(f"Mudança de email do leitor '{IdLeitorPMudarEmail}' executado com sucesso!")
         print("-----------------------------------------------")
     
-    #opção 8
+    #opção 8 Deletar Linha de uma Tabela
     elif option == 8:
         print("-----------------------------------------------")
-        print("(1) Deletar linha da tabela 'Clientes'")
-        print("(2) Deletar linha da tabela 'Produtos'")
-        print("(3) Deletar linha da tabela 'Pedidos'")
+        print("(1) Deletar linha da tabela 'Livros'")
+        print("(2) Deletar linha da tabela 'Leitores'")
+        print("(3) Deletar linha da tabela 'Empréstimos'")
         option = int(input(f"Digite o número da sua opção: "))
         id_linha_a_ser_del = int(input(f"Digite o ID da linha que deseja deletar: "))
         cursor=conection.cursor()
 
         if option == 1:
             print("------------------------------")
-            cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_linha_a_ser_del,))
+            cursor.execute("DELETE FROM livros_tb WHERE id_livro = %s", (id_linha_a_ser_del,))
             conection.commit()
-            print("Linha da tabela Clientes deletada com sucesso!")
+            print("Linha da tabela 'Livros' deletada com sucesso!")
             print("------------------------------")
 
-        if option == 2:
+        elif option == 2:
             print("------------------------------")
-            cursor.execute("DELETE FROM produtos WHERE id_produto = %s", (id_linha_a_ser_del,))
+            cursor.execute("DELETE FROM leitores_tb WHERE id_leitor = %s", (id_linha_a_ser_del,))
             conection.commit()
-            print("Linha da tabela Produtos deletada com sucesso!")
+            print("Linha da tabela 'Leitores' deletada com sucesso!")
             print("------------------------------")
 
-        if option == 3:
+        elif option == 3:
             print("------------------------------")
-            cursor.execute("DELETE FROM pedidos WHERE id_pedido = %s", (id_linha_a_ser_del,))
+            cursor.execute("DELETE FROM emprestimos_tb WHERE id_emprestimo = %s", (id_linha_a_ser_del,))
             conection.commit()
-            print("Linha da tabela Produtos deletada com sucesso!")
+            print("Linha da tabela 'Empréstimos' deletada com sucesso!")
             print("------------------------------")
     
 except Exception as e:
